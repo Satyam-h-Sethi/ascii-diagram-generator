@@ -1,0 +1,15 @@
+# 1. Architecture Overview
+box: Authentication Service | Port: 8080 (Stateless)
+
+# 2. Pipeline Flow
+flowchart:
+  Ingest -> Validate -> Transform -> Store
+
+# 3. Request-Response Sequence
+sequence:
+  User -> Gateway: GET /profile
+  Gateway -> AuthService: Validate Session
+  AuthService -> Gateway: Session Valid
+  Gateway -> Database: SELECT * FROM user
+  Database -> Gateway: User Row
+  Gateway -> User: 200 OK (User JSON)

@@ -1,0 +1,15 @@
+{
+  "name": "ascii-diagram-generator",
+  "version": "1.0.0",
+  "description": "Zero-dependency CLI tool to generate ASCII flowcharts, sequence diagrams, boxes, and trees from plain text",
+  "main": "index.js",
+  "bin": {
+    "asciidiag": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js sample-workflow.txt"
+  },
+  "keywords": ["ascii", "diagram", "cli", "flowchart", "sequence-diagram", "tools"],
+  "author": "",
+  "license": "MIT"
+}
