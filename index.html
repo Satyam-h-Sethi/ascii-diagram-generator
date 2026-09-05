@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Diagram Studio</title>
+  <style>
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --bg: #090d16;
+      --bg-card: rgba(18, 26, 44, 0.75);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: radial-gradient(circle at 50% 0%, #311042 0%, var(--bg) 75%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .actions { display: flex; gap: 10px; }
+    button {
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    button.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+    }
+    button.primary:hover { background: var(--primary-hover); }
+
+    .templates-bar {
+      padding: 12px 28px;
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .templates-bar span { color: var(--text-muted); font-weight: 600; }
+    .btn-chip {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px 28px;
+      min-height: 0;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+    }
+    .panel-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    textarea {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 18px;
+      resize: none;
+      outline: none;
+    }
+    pre.preview-pane {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      background: #0d1117;
+      color: #7ee787;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.35;
+      white-space: pre;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span>📐 ASCII Diagram Studio</span>
+      <span class="logo-badge">Live Canvas</span>
+    </div>
+    <div class="actions">
+      <button class="primary" id="copyBtn">📋 Copy ASCII</button>
+      <button id="downloadBtn">⬇️ Export .txt</button>
+    </div>
+  </header>
+
+  <div class="templates-bar">
+    <span>Insert Template:</span>
+    <button class="btn-chip" id="tmplBox">+ Box</button>
+    <button class="btn-chip" id="tmplFlow">+ Flowchart</button>
+    <button class="btn-chip" id="tmplSeq">+ Sequence</button>
+  </div>
+
+  <main>
+    <div class="panel">
+      <div class="panel-header">
+        <span>Diagram DSL Source</span>
+        <span>Text</span>
+      </div>
+      <textarea id="dslInput"></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Rendered ASCII Art</span>
+        <span>Unicode / Monospace</span>
+      </div>
+      <pre class="preview-pane" id="asciiOutput"></pre>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    function renderBox(title, subtitle = '') {
+      const content = subtitle ? `${title}\n${subtitle}` : title;
+      const lines = content.split('\n');
+      const maxLen = Math.max(...lines.map(l => l.length), 10);
+      const width = maxLen + 4;
+      const top = '┌' + '─'.repeat(width) + '┐';
+      const bottom = '└' + '─'.repeat(width) + '┘';
+      const middle = lines.map(line => {
+        const pad = width - line.length - 2;
+        const padLeft = Math.floor(pad / 2);
+        const padRight = pad - padLeft;
+        return `│ ${' '.repeat(padLeft)}${line}${' '.repeat(padRight)} │`;
+      });
+      return [top, ...middle, bottom].join('\n');
+    }
+
+    function renderFlowchart(steps) {
+      const boxes = steps.map(s => {
+        const len = s.length;
+        return ['┌' + '─'.repeat(len + 2) + '┐', `│ ${s} │`, '└' + '─'.repeat(len + 2) + '┘'];
+      });
+      const arrowMid = '  ───>  ';
+      const emptySpace = '        ';
+      const outputLines = ['', '', ''];
+      boxes.forEach((box, index) => {
+        outputLines[0] += box[0];
+        outputLines[1] += box[1];
+        outputLines[2] += box[2];
+        if (index < boxes.length - 1) {
+          outputLines[0] += emptySpace;
+          outputLines[1] += arrowMid;
+          outputLines[2] += emptySpace;
+        }
+      });
+      return outputLines.join('\n');
+    }
+
+    function renderSequence(messages) {
+      const participants = Array.from(new Set(messages.flatMap(m => [m.from, m.to])));
+      if (participants.length === 0) return '';
+      const colWidth = 18;
+      const colCenters = participants.map((p, i) => i * colWidth + Math.floor(colWidth / 2));
+
+      let headerBoxesTop = '', headerBoxesMid = '', headerBoxesBot = '';
+      participants.forEach(p => {
+        const boxWidth = Math.min(colWidth - 2, Math.max(p.length + 2, 8));
+        const pad = Math.floor((colWidth - boxWidth) / 2);
+        const textPad = boxWidth - 2 - p.length;
+        const lPad = Math.floor(textPad / 2);
+        const rPad = textPad - lPad;
+        headerBoxesTop += ' '.repeat(pad) + '┌' + '─'.repeat(boxWidth - 2) + '┐' + ' '.repeat(colWidth - pad - boxWidth);
+        headerBoxesMid += ' '.repeat(pad) + '│' + ' '.repeat(lPad) + p + ' '.repeat(rPad) + '│' + ' '.repeat(colWidth - pad - boxWidth);
+        headerBoxesBot += ' '.repeat(pad) + '└' + '─'.repeat(boxWidth - 2) + '┘' + ' '.repeat(colWidth - pad - boxWidth);
+      });
+
+      const lifelines = () => participants.map(() => ' '.repeat(Math.floor(colWidth / 2)) + '│' + ' '.repeat(colWidth - Math.floor(colWidth / 2) - 1)).join('');
+      const result = [headerBoxesTop, headerBoxesMid, headerBoxesBot, lifelines()];
+
+      messages.forEach(m => {
+        const fromIdx = participants.indexOf(m.from);
+        const toIdx = participants.indexOf(m.to);
+        const leftIdx = Math.min(fromIdx, toIdx);
+        const rightIdx = Math.max(fromIdx, toIdx);
+        const leftPos = colCenters[leftIdx];
+        const rightPos = colCenters[rightIdx];
+        const spanWidth = rightPos - leftPos;
+        const isLeftToRight = fromIdx < toIdx;
+        const arrowLine = isLeftToRight ? '─'.repeat(spanWidth - 1) + '>' : '<' + '─'.repeat(spanWidth - 1);
+        const labelPad = Math.max(0, Math.floor((spanWidth - m.label.length) / 2));
+        let labelRow = ' '.repeat(leftPos) + ' '.repeat(labelPad) + m.label;
+        let arrowRow = ' '.repeat(leftPos) + arrowLine;
+
+        participants.forEach((p, idx) => {
+          const pos = colCenters[idx];
+          if (idx < leftIdx || idx > rightIdx) {
+            if (labelRow.length <= pos) labelRow = labelRow.padEnd(pos, ' ') + '│';
+            else labelRow = labelRow.substring(0, pos) + '│' + labelRow.substring(pos + 1);
+
+            if (arrowRow.length <= pos) arrowRow = arrowRow.padEnd(pos, ' ') + '│';
+            else arrowRow = arrowRow.substring(0, pos) + '│' + arrowRow.substring(pos + 1);
+          }
+        });
+
+        result.push(labelRow);
+        result.push(arrowRow);
+        result.push(lifelines());
+      });
+      return result.join('\n');
+    }
+
+    function parseDSL(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+      const outputs = [];
+      let currentType = null;
+      let buffer = [];
+
+      for (const line of lines) {
+        if (line.startsWith('flowchart:')) {
+          if (currentType === 'sequence' && buffer.length) outputs.push(renderSequence(buffer));
+          currentType = 'flowchart';
+          buffer = [];
+        } else if (line.startsWith('sequence:')) {
+          if (currentType === 'sequence' && buffer.length) outputs.push(renderSequence(buffer));
+          currentType = 'sequence';
+          buffer = [];
+        } else if (line.startsWith('box:')) {
+          if (currentType === 'sequence' && buffer.length) outputs.push(renderSequence(buffer));
+          currentType = null;
+          buffer = [];
+          const parts = line.replace('box:', '').trim().split('|').map(s => s.trim());
+          outputs.push(renderBox(parts[0], parts[1] || ''));
+        } else if (currentType === 'flowchart') {
+          const steps = line.split('->').map(s => s.trim()).filter(Boolean);
+          if (steps.length > 1) outputs.push(renderFlowchart(steps));
+        } else if (currentType === 'sequence') {
+          const match = line.match(/^(.+?)\s*->\s*(.+?)\s*:\s*(.+)$/);
+          if (match) buffer.push({ from: match[1].trim(), to: match[2].trim(), label: match[3].trim() });
+        }
+      }
+      if (currentType === 'sequence' && buffer.length > 0) outputs.push(renderSequence(buffer));
+      return outputs.join('\n\n');
+    }
+
+    const defaultDSL = `# 1. Architecture Box
+box: Edge CDN & API Gateway | Region: us-east-1
+
+# 2. Linear Pipeline Flowchart
+flowchart:
+  Client -> Firewall -> LoadBalancer -> AppCluster -> Database
+
+# 3. Request-Response Sequence Diagram
+sequence:
+  Browser -> Gateway: GET /api/v1/feed
+  Gateway -> Cache: Lookup cache key
+  Cache -> Gateway: Cache MISS
+  Gateway -> Database: SELECT posts LIMIT 20
+  Database -> Gateway: 20 rows returned
+  Gateway -> Browser: 200 OK (JSON Feed)`;
+
+    const input = document.getElementById('dslInput');
+    const output = document.getElementById('asciiOutput');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function update() {
+      output.textContent = parseDSL(input.value);
+    }
+
+    input.value = defaultDSL;
+    update();
+    input.addEventListener('input', update);
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent).then(() => showToast('ASCII art copied!'));
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const blob = new Blob([output.textContent], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'diagram.txt';
+      a.click();
+      showToast('Downloaded diagram.txt!');
+    });
+
+    document.getElementById('tmplBox').addEventListener('click', () => {
+      input.value += '\n\nbox: Service Name | Metadata / Port: 8080';
+      update();
+    });
+    document.getElementById('tmplFlow').addEventListener('click', () => {
+      input.value += '\n\nflowchart:\n  Step 1 -> Step 2 -> Step 3';
+      update();
+    });
+    document.getElementById('tmplSeq').addEventListener('click', () => {
+      input.value += '\n\nsequence:\n  Client -> Server: Request\n  Server -> Client: Response';
+      update();
+    });
+  </script>
+</body>
+</html>

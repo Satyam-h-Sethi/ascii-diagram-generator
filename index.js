@@ -1,5 +1,24 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const http = require('http');
+const path = require('path');
+
+function startWebServer(port = 3000) {
+  const htmlPath = path.join(__dirname, 'index.html');
+  const server = http.createServer((req, res) => {
+    if (fs.existsSync(htmlPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(fs.readFileSync(htmlPath));
+    } else {
+      res.writeHead(404);
+      res.end('Web UI not found');
+    }
+  });
+
+  server.listen(port, () => {
+    console.log(`ASCII Diagram Studio running at http://localhost:${port}`);
+  });
+}
 
 function renderBox(title, subtitle = '') {
   const content = subtitle ? `${title}\n${subtitle}` : title;
@@ -169,6 +188,13 @@ function parseDiagramDSL(text) {
 
 function main() {
   const args = process.argv.slice(2);
+  if (args.includes('--web')) {
+    const portIndex = args.indexOf('--web');
+    const port = parseInt(args[portIndex + 1], 10) || 3000;
+    startWebServer(port);
+    return;
+  }
+
   if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
     console.log(`
 ASCII Diagram Generator
@@ -176,6 +202,7 @@ Convert simple text descriptions into clean ASCII flowcharts and sequence diagra
 
 Usage:
   node index.js <file.txt>
+  node index.js --web [port]
 
 DSL Syntax:
   box: Title | Subtitle
