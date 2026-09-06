@@ -1,6 +1,14 @@
 # ascii-diagram-generator
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-ascii.satyamsethi.dpdns.org-3b82f6?style=for-the-badge&logo=cloudflare&logoColor=white)](https://ascii.satyamsethi.dpdns.org)
+[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare_Pages-Deployment-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white)](https://ascii-diagram-generator.pages.dev)
+
 A zero-dependency CLI tool and interactive Web Studio to generate clean ASCII architecture boxes, linear flowcharts, and multi-actor sequence diagrams from plain text.
+
+## 🌐 Live Demo
+
+- **Primary Custom Domain**: [https://ascii.satyamsethi.dpdns.org](https://ascii.satyamsethi.dpdns.org)
+- **Cloudflare Pages Direct**: [https://ascii-diagram-generator.pages.dev](https://ascii-diagram-generator.pages.dev)
 
 ## What it does
 
